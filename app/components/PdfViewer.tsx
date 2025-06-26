@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import { Viewer, Worker } from "@react-pdf-viewer/core";
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import "@react-pdf-viewer/core/lib/styles/index.css";
@@ -202,7 +202,7 @@ export default function PdfViewer({ src }: PdfViewerProps) {
 
       {/* PDF Viewer */}
       <div className="flex-1 overflow-auto p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full max-w-6xl mx-auto">
           <Worker
             workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}
           >
@@ -212,7 +212,7 @@ export default function PdfViewer({ src }: PdfViewerProps) {
                 height: "600px",
                 border: "1px solid #ddd",
                 borderRadius: "8px",
-                overflow: "hidden",
+                overflow: "auto",
               }}
             >
               <Viewer
@@ -221,33 +221,12 @@ export default function PdfViewer({ src }: PdfViewerProps) {
                 onDocumentLoad={handleDocumentLoad}
                 onPageChange={handlePageChange}
                 initialPage={currentPage}
-                defaultScale={SpecialZoomLevel.PageWidth}
+                defaultScale={1}
               />
             </div>
           </Worker>
         </div>
       </div>
-
-      <style jsx global>{`
-        .pdf-container .rpv-core__inner-pages {
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
-          height: 100% !important;
-          overflow-y: auto !important;
-        }
-
-        .pdf-container .rpv-core__inner-page {
-          margin-bottom: 16px !important;
-          max-height: calc(100vh - 200px) !important;
-          width: auto !important;
-        }
-
-        .pdf-container .rpv-core__page-layer {
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
-          border-radius: 4px !important;
-        }
-      `}</style>
     </div>
   );
 }
