@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDF Document Intelligence with Azure
 
-## Getting Started
+This Next.js application demonstrates how to use Microsoft Azure Document Intelligence (formerly Form Recognizer) to extract text and bounding box coordinates from PDF documents using OCR.
 
-First, run the development server:
+## Features
+
+- **PDF Viewer**: Display PDF documents in the browser
+- **Text Extraction**: Extract text with precise coordinates using Azure Document Intelligence
+- **Bounding Box Information**: Get x-min, y-min, x-max, y-max coordinates for each text element
+- **Confidence Scores**: View OCR confidence levels for extracted text
+- **Page-by-Page Analysis**: Organized results by document pages
+
+## Prerequisites
+
+1. **Azure Account**: You need an active Azure subscription
+2. **Document Intelligence Resource**: Create a Document Intelligence resource in Azure Portal
+
+## Setup Instructions
+
+### 1. Azure Document Intelligence Setup
+
+1. Go to the [Azure Portal](https://portal.azure.com)
+2. Create a new "Document Intelligence" resource
+3. Once deployed, go to "Keys and Endpoint" section
+4. Copy the **Endpoint** and **Key 1** (or Key 2)
+
+### 2. Environment Configuration
+
+Create a `.env.local` file in the root directory:
+
+```bash
+# Azure Document Intelligence Configuration
+NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=https://your-resource-name.cognitiveservices.azure.com/
+NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_API_KEY=your-api-key-here
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+### 4. Run the Application
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## How It Works
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **PDF Display**: The left panel shows the PDF using `react-pdf-viewer`
+2. **Analysis**: Click "Analyze PDF" to send the document to Azure Document Intelligence
+3. **Results**: The right panel displays extracted text with:
+   - Text content
+   - Bounding box coordinates (x-min, y-min, x-max, y-max)
+   - Confidence scores
+   - Text dimensions
 
-## Learn More
+## API Usage
 
-To learn more about Next.js, take a look at the following resources:
+The application uses Azure Document Intelligence's `prebuilt-read` model which is optimized for:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Text extraction from documents
+- Multi-language support
+- High accuracy OCR
+- Bounding box detection
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## File Structure
+
+```
+app/
+├── components/
+│   ├── PdfViewer.tsx          # PDF display component
+│   └── ExtractedTextViewer.tsx # Results display component
+├── hooks/
+│   └── useDocumentIntelligence.ts # React hook for Azure integration
+├── services/
+│   └── documentIntelligence.ts    # Azure Document Intelligence service
+└── page.tsx                       # Main application page
+```
+
+## Key Components
+
+### DocumentIntelligenceService
+
+Handles communication with Azure Document Intelligence API:
+
+- Analyze documents from file buffers
+- Analyze documents from URLs
+- Extract text with precise coordinates
+
+### useDocumentIntelligence Hook
+
+React hook that provides:
+
+- Document analysis functions
+- Loading states
+- Error handling
+- Result management
+
+### ExtractedTextViewer
+
+Displays analysis results with:
+
+- Grouped text by pages
+- Bounding box coordinates
+- Confidence score indicators
+- Color-coded confidence levels
+
+## Environment Variables
+
+| Variable                                           | Description                                   |
+| -------------------------------------------------- | --------------------------------------------- |
+| `NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | Your Azure Document Intelligence endpoint URL |
+| `NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_API_KEY`  | Your Azure Document Intelligence API key      |
+
+## Pricing
+
+Azure Document Intelligence pricing is based on the number of pages analyzed. Check the [Azure Pricing Calculator](https://azure.microsoft.com/pricing/calculator/) for current rates.
+
+## Troubleshooting
+
+1. **Authentication Errors**: Verify your endpoint URL and API key
+2. **CORS Issues**: Ensure your Azure resource allows requests from your domain
+3. **Rate Limiting**: Azure has rate limits; implement retry logic for production use
 
 ## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Remember to add your environment variables in the Vercel dashboard.
+
+## Original Next.js Information
+
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+For more information about Next.js:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
