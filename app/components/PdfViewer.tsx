@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
+import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
+import "@react-pdf-viewer/zoom/lib/styles/index.css";
 
 export interface PdfViewerProps {
   /**
@@ -29,6 +31,7 @@ export default function PdfViewer({ src }: PdfViewerProps) {
 
   // Create plugins
   const pageNavigationPluginInstance = pageNavigationPlugin();
+  const zoomPluginInstance = zoomPlugin();
 
   const {
     GoToFirstPage,
@@ -37,6 +40,8 @@ export default function PdfViewer({ src }: PdfViewerProps) {
     GoToPreviousPage,
     CurrentPageInput,
   } = pageNavigationPluginInstance;
+
+  const { ZoomIn, ZoomOut, CurrentScale } = zoomPluginInstance;
 
   const handleDocumentLoad = (e: { doc: { numPages: number } }) => {
     setNumPages(e.doc.numPages);
@@ -102,10 +107,68 @@ export default function PdfViewer({ src }: PdfViewerProps) {
           </GoToNextPage>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span>Page</span>
-          <CurrentPageInput />
-          <span>of {numPages}</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
+            <span>Page</span>
+            <CurrentPageInput />
+            <span>of {numPages}</span>
+          </div>
+
+          <div className="flex items-center gap-1 border-l border-gray-300 pl-4">
+            <ZoomOut>
+              {(props) => (
+                <button
+                  onClick={props.onClick}
+                  className="p-2 rounded hover:bg-gray-100 transition-colors"
+                  title="Zoom out"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
+                    />
+                  </svg>
+                </button>
+              )}
+            </ZoomOut>
+
+            <div className="text-xs text-gray-500 min-w-[3rem] text-center">
+              <CurrentScale>
+                {(props) => <span>{Math.round(props.scale * 100)}%</span>}
+              </CurrentScale>
+            </div>
+
+            <ZoomIn>
+              {(props) => (
+                <button
+                  onClick={props.onClick}
+                  className="p-2 rounded hover:bg-gray-100 transition-colors"
+                  title="Zoom in"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                    />
+                  </svg>
+                </button>
+              )}
+            </ZoomIn>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -154,7 +217,7 @@ export default function PdfViewer({ src }: PdfViewerProps) {
             >
               <Viewer
                 fileUrl={src}
-                plugins={[pageNavigationPluginInstance]}
+                plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
                 onDocumentLoad={handleDocumentLoad}
                 onPageChange={handlePageChange}
                 initialPage={currentPage}
