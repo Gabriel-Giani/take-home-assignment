@@ -1,9 +1,10 @@
 "use client";
 
-import { Viewer, Worker } from "@react-pdf-viewer/core";
+import { useState } from "react";
+import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
+import { pageNavigationPlugin } from "@react-pdf-viewer/page-navigation";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
 
 export interface PdfViewerProps {
   /**
@@ -14,25 +15,176 @@ export interface PdfViewerProps {
 }
 
 /**
- * A thin wrapper around `react-pdf-viewer` that works out-of-the-box with Next.js.
+ * A PDF viewer that displays one page at a time with navigation controls.
  *
  * The component disables server-side rendering (via the `use client` directive)
  * because `pdfjs` relies on browser APIs.
  */
 export default function PdfViewer({ src }: PdfViewerProps) {
+  const [currentPage, setCurrentPage] = useState(0);
+  const [numPages, setNumPages] = useState(0);
+
   // Use a CDN version of `pdfjs-dist` that matches the installed major version.
   const pdfjsVersion = "3.11.174";
 
-  // The plugin must be created inside the component body (top-level) so that its
-  // internal hooks comply with the Rules of Hooks.
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  // Create plugins
+  const pageNavigationPluginInstance = pageNavigationPlugin();
+
+  const {
+    GoToFirstPage,
+    GoToLastPage,
+    GoToNextPage,
+    GoToPreviousPage,
+    CurrentPageInput,
+  } = pageNavigationPluginInstance;
+
+  const handleDocumentLoad = (e: { doc: { numPages: number } }) => {
+    setNumPages(e.doc.numPages);
+  };
+
+  const handlePageChange = (e: { currentPage: number }) => {
+    setCurrentPage(e.currentPage);
+  };
 
   return (
-    <Worker
-      workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}
-    >
-      {/* Full-featured toolbar via defaultLayoutPlugin */}
-      <Viewer fileUrl={src} plugins={[defaultLayoutPluginInstance]} />
-    </Worker>
+    <div className="h-full flex flex-col bg-gray-100">
+      {/* Navigation Controls */}
+      <div className="flex items-center justify-between p-3 bg-white border-b border-gray-200 shadow-sm">
+        <div className="flex items-center gap-2">
+          <GoToPreviousPage>
+            {(props) => (
+              <button
+                onClick={props.onClick}
+                disabled={currentPage === 0}
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Previous page"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+            )}
+          </GoToPreviousPage>
+
+          <GoToNextPage>
+            {(props) => (
+              <button
+                onClick={props.onClick}
+                disabled={currentPage === numPages - 1}
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Next page"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            )}
+          </GoToNextPage>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <span>Page</span>
+          <CurrentPageInput />
+          <span>of {numPages}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <GoToFirstPage>
+            {(props) => (
+              <button
+                onClick={props.onClick}
+                disabled={currentPage === 0}
+                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="First page"
+              >
+                First
+              </button>
+            )}
+          </GoToFirstPage>
+
+          <GoToLastPage>
+            {(props) => (
+              <button
+                onClick={props.onClick}
+                disabled={currentPage === numPages - 1}
+                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                title="Last page"
+              >
+                Last
+              </button>
+            )}
+          </GoToLastPage>
+        </div>
+      </div>
+
+      {/* PDF Viewer */}
+      <div className="flex-1 overflow-auto p-4">
+        <div className="max-w-4xl mx-auto">
+          <Worker
+            workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}
+          >
+            <div
+              className="pdf-container"
+              style={{
+                height: "600px",
+                border: "1px solid #ddd",
+                borderRadius: "8px",
+                overflow: "hidden",
+              }}
+            >
+              <Viewer
+                fileUrl={src}
+                plugins={[pageNavigationPluginInstance]}
+                onDocumentLoad={handleDocumentLoad}
+                onPageChange={handlePageChange}
+                initialPage={currentPage}
+                defaultScale={SpecialZoomLevel.PageWidth}
+              />
+            </div>
+          </Worker>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        .pdf-container .rpv-core__inner-pages {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          height: 100% !important;
+          overflow-y: auto !important;
+        }
+
+        .pdf-container .rpv-core__inner-page {
+          margin-bottom: 16px !important;
+          max-height: calc(100vh - 200px) !important;
+          width: auto !important;
+        }
+
+        .pdf-container .rpv-core__page-layer {
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+          border-radius: 4px !important;
+        }
+      `}</style>
+    </div>
   );
 }
