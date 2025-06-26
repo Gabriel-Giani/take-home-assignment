@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   DocumentIntelligenceService,
   DocumentAnalysisResult,
@@ -27,9 +27,9 @@ export function useDocumentIntelligence(
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<DocumentAnalysisResult | null>(null);
 
-  const service = new DocumentIntelligenceService(
-    config.endpoint,
-    config.apiKey
+  const service = useMemo(
+    () => new DocumentIntelligenceService(config.endpoint, config.apiKey),
+    [config.endpoint, config.apiKey]
   );
 
   const analyzeDocument = useCallback(

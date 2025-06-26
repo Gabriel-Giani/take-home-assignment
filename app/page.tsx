@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import PdfViewer from "./components/PdfViewer";
-import ExtractedTextViewer from "./components/ExtractedTextViewer";
+import TabbedResultsViewer from "./components/TabbedResultsViewer";
 import FileUpload from "./components/FileUpload";
 import { useDocumentIntelligence } from "./hooks/useDocumentIntelligence";
 
@@ -49,7 +49,19 @@ export default function Home() {
     <main className="h-screen flex flex-col">
       {/* Header with controls */}
       <div className="border-b border-gray-300 p-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">PDF Document Intelligence</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-semibold">PDF Document Intelligence</h1>
+          {result && (
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span className="bg-blue-50 px-2 py-1 rounded">
+                📄 {result.pages} page{result.pages !== 1 ? "s" : ""}
+              </span>
+              <span className="bg-green-50 px-2 py-1 rounded">
+                📝 {result.extractedTexts.length} elements
+              </span>
+            </div>
+          )}
+        </div>
         <div className="flex items-center gap-4">
           {configurationMissing && (
             <div className="text-sm text-red-600 bg-red-50 px-3 py-1 rounded">
@@ -166,8 +178,8 @@ export default function Home() {
           )}
         </div>
 
-        <div className="border border-gray-300 rounded-md p-2 overflow-auto">
-          <ExtractedTextViewer
+        <div className="border border-gray-300 rounded-md overflow-hidden">
+          <TabbedResultsViewer
             extractedTexts={result?.extractedTexts || []}
             isLoading={isAnalyzing}
           />
