@@ -38,14 +38,55 @@ def extract_pdf():
             temp_path = temp_file.name
         
         try:
-            # Extract text using pdfplumber
+            # Extract text and coordinates using pdfplumber
             extracted_text = ""
+            text_with_coords = []
+            
             with pdfplumber.open(temp_path) as pdf:
                 for page_num, page in enumerate(pdf.pages, 1):
+                    # Extract plain text
                     text = page.extract_text()
                     if text:
                         extracted_text += f"--- Page {page_num} ---\n"
                         extracted_text += text + "\n\n"
+                    
+                    # Extract text with coordinates
+                    chars = page.chars
+                    words = page.extract_words()
+                    
+                    page_data = {
+                        'page': page_num,
+                        'page_width': page.width,
+                        'page_height': page.height,
+                        'words': [],
+                        'characters': []
+                    }
+                    
+                    # Add word-level coordinates
+                    for word in words:
+                        page_data['words'].append({
+                            'text': word.get('text', ''),
+                            'x0': word.get('x0', 0),
+                            'y0': word.get('y0', 0), 
+                            'x1': word.get('x1', 0),
+                            'y1': word.get('y1', 0),
+                            'width': word.get('x1', 0) - word.get('x0', 0),
+                            'height': word.get('y1', 0) - word.get('y0', 0)
+                        })
+                    
+                    # Add character-level coordinates (limited to first 100 chars per page for performance)
+                    for i, char in enumerate(chars[:100]):
+                        page_data['characters'].append({
+                            'text': char['text'],
+                            'x0': char['x0'],
+                            'y0': char['y0'],
+                            'x1': char['x1'], 
+                            'y1': char['y1'],
+                            'fontname': char.get('fontname', ''),
+                            'size': char.get('size', 0)
+                        })
+                    
+                    text_with_coords.append(page_data)
             
             # Clean up temporary file
             os.unlink(temp_path)
@@ -53,7 +94,8 @@ def extract_pdf():
             return jsonify({
                 'success': True,
                 'text': extracted_text,
-                'pages': len(pdf.pages)
+                'pages': len(pdf.pages),
+                'coordinates': text_with_coords
             })
         
         except Exception as e:
@@ -84,19 +126,61 @@ def extract_pdf_from_url():
             if not os.path.exists(pdf_path):
                 return jsonify({'error': 'PDF file not found'}), 404
             
-            # Extract text using pdfplumber
+            # Extract text and coordinates using pdfplumber
             extracted_text = ""
+            text_with_coords = []
+            
             with pdfplumber.open(pdf_path) as pdf:
                 for page_num, page in enumerate(pdf.pages, 1):
+                    # Extract plain text
                     text = page.extract_text()
                     if text:
                         extracted_text += f"--- Page {page_num} ---\n"
                         extracted_text += text + "\n\n"
+                    
+                    # Extract text with coordinates
+                    chars = page.chars
+                    words = page.extract_words()
+                    
+                    page_data = {
+                        'page': page_num,
+                        'page_width': page.width,
+                        'page_height': page.height,
+                        'words': [],
+                        'characters': []
+                    }
+                    
+                    # Add word-level coordinates
+                    for word in words:
+                        page_data['words'].append({
+                            'text': word.get('text', ''),
+                            'x0': word.get('x0', 0),
+                            'y0': word.get('y0', 0), 
+                            'x1': word.get('x1', 0),
+                            'y1': word.get('y1', 0),
+                            'width': word.get('x1', 0) - word.get('x0', 0),
+                            'height': word.get('y1', 0) - word.get('y0', 0)
+                        })
+                    
+                    # Add character-level coordinates (limited to first 100 chars per page for performance)
+                    for i, char in enumerate(chars[:100]):
+                        page_data['characters'].append({
+                            'text': char['text'],
+                            'x0': char['x0'],
+                            'y0': char['y0'],
+                            'x1': char['x1'], 
+                            'y1': char['y1'],
+                            'fontname': char.get('fontname', ''),
+                            'size': char.get('size', 0)
+                        })
+                    
+                    text_with_coords.append(page_data)
             
             return jsonify({
                 'success': True,
                 'text': extracted_text,
-                'pages': len(pdf.pages)
+                'pages': len(pdf.pages),
+                'coordinates': text_with_coords
             })
         else:
             return jsonify({'error': 'Only local PDFs are supported in this example'}), 400
