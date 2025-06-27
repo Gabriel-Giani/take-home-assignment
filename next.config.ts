@@ -62,11 +62,6 @@ const nextConfig: NextConfig = {
 
     return config;
   },
-
-  // Disable server-side rendering for PDF-related components
-  experimental: {
-    esmExternals: "loose",
-  },
 };
 
 export default nextConfig;
