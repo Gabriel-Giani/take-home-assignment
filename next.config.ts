@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
     // PDF.js fix for serverless deployment
     if (!isServer) {
+      // Add alias to redirect canvas to false
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        canvas: false,
+        jsdom: false,
+      };
+
       config.resolve.fallback = {
         ...config.resolve.fallback,
         canvas: false,
