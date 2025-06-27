@@ -216,6 +216,7 @@ export default function DocumentAnalysis({
   }
 
   const fields = extractFields();
+
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.98) return "text-green-600 bg-green-50";
     if (confidence >= 0.95) return "text-green-600 bg-green-50";
@@ -410,8 +411,10 @@ export default function DocumentAnalysis({
                     {field.value}
                   </div>
                   <div className="text-xs text-gray-500 group-hover:text-gray-600">
-                    📄 Page {field.page} • Confidence:{" "}
-                    {Math.round(field.confidence * 100)}% • Click to view
+                    📄 Page {field.page} • Coordinates: (
+                    {Math.round(field.originalText.boundingBox.xMin)},{" "}
+                    {Math.round(field.originalText.boundingBox.yMin)}) • Click
+                    to view
                   </div>
                 </div>
               ))}
