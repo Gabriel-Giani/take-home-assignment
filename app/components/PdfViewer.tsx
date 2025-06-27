@@ -286,6 +286,30 @@ export default function PdfViewer({
           box-shadow: 0 0 15px rgba(139, 92, 246, 0.8) !important;
           animation: none !important;
         }
+        /* Disable PDF link interactions and annotations */
+        .pdf-container :global(a) {
+          pointer-events: none !important;
+          cursor: default !important;
+          text-decoration: none !important;
+        }
+        .pdf-container :global(.rpv-core__annotation-layer) {
+          pointer-events: none !important;
+        }
+        .pdf-container :global(.rpv-core__annotation-layer a) {
+          pointer-events: none !important;
+          cursor: default !important;
+        }
+        .pdf-container
+          :global(.rpv-core__annotation-layer [data-annotation-id]) {
+          pointer-events: none !important;
+          cursor: default !important;
+        }
+        /* Disable hover effects on annotation elements */
+        .pdf-container :global(.rpv-core__annotation-layer *:hover) {
+          background-color: transparent !important;
+          border: none !important;
+          outline: none !important;
+        }
       `}</style>
 
       {/* Navigation Controls */}
