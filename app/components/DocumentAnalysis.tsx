@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { DocumentAnalysisResult } from "../services/documentIntelligence";
+import {
+  DocumentAnalysisResult,
+  ExtractedText,
+} from "../services/documentIntelligence";
 
 export interface DocumentAnalysisProps {
   result: DocumentAnalysisResult | null;
   isAnalyzing: boolean;
   error: string | null;
   configurationMissing: boolean;
+  onFieldClick?: (field: ExtractedText) => void;
 }
 
 export default function DocumentAnalysis({
@@ -15,6 +19,7 @@ export default function DocumentAnalysis({
   isAnalyzing,
   error,
   configurationMissing,
+  onFieldClick,
 }: DocumentAnalysisProps) {
   const [activeTab, setActiveTab] = useState<"fields" | "json">("fields");
   if (configurationMissing) {
@@ -151,7 +156,7 @@ export default function DocumentAnalysis({
     );
   }
 
-  // Just show all extracted text content
+  // Convert extracted text to fields format
   const extractFields = () => {
     return result.extractedTexts.map((text, index) => ({
       name: `Field_${index + 1}`,
@@ -159,6 +164,7 @@ export default function DocumentAnalysis({
       confidence: text.confidence || 0.95,
       page: text.page,
       type: "text" as const,
+      originalText: text, // Keep reference to original extracted text
     }));
   };
 
@@ -172,6 +178,12 @@ export default function DocumentAnalysis({
 
   const getFieldIcon = () => {
     return "📝";
+  };
+
+  const handleFieldClick = (field: { originalText: ExtractedText }) => {
+    if (onFieldClick && field.originalText) {
+      onFieldClick(field.originalText);
+    }
   };
 
   // Create JSON structure for the JSON view
@@ -293,18 +305,23 @@ export default function DocumentAnalysis({
               <h3 className="text-sm font-medium text-gray-900">
                 Extracted Text
               </h3>
+              <span className="text-xs text-gray-500">
+                (Click any field to highlight it on the PDF)
+              </span>
             </div>
 
             <div className="space-y-3">
               {fields.map((field, index) => (
                 <div
                   key={index}
-                  className="border border-gray-200 rounded-lg p-3 touch-manipulation"
+                  onClick={() => handleFieldClick(field)}
+                  className="border border-gray-200 rounded-lg p-3 touch-manipulation cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-all duration-200 group"
+                  title="Click to highlight this field on the PDF"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-lg">{getFieldIcon()}</span>
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-gray-900 group-hover:text-purple-700">
                         {field.name}
                       </span>
                     </div>
@@ -316,7 +333,13 @@ export default function DocumentAnalysis({
                       >
                         ✓ {Math.round(field.confidence * 100)}%
                       </span>
-                      <button className="text-gray-400 hover:text-gray-600">
+                      <button
+                        className="text-gray-400 hover:text-gray-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle field deletion if needed
+                        }}
+                      >
                         <svg
                           className="w-4 h-4"
                           fill="none"
@@ -333,12 +356,12 @@ export default function DocumentAnalysis({
                       </button>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600 mb-1">
+                  <div className="text-sm text-gray-600 mb-1 group-hover:text-gray-800">
                     {field.value}
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-gray-500 group-hover:text-gray-600">
                     📄 Page {field.page} • Confidence:{" "}
-                    {Math.round(field.confidence * 100)}%
+                    {Math.round(field.confidence * 100)}% • Click to view
                   </div>
                 </div>
               ))}

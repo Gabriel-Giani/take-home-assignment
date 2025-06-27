@@ -5,6 +5,7 @@ import PdfViewer from "./components/PdfViewer";
 import FileUpload from "./components/FileUpload";
 import DocumentAnalysis from "./components/DocumentAnalysis";
 import { useDocumentIntelligence } from "./hooks/useDocumentIntelligence";
+import { ExtractedText } from "./services/documentIntelligence";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -16,6 +17,10 @@ export default function Home() {
   const [mobileActiveTab, setMobileActiveTab] = useState<
     "files" | "viewer" | "analysis"
   >("files");
+  const [highlightedField, setHighlightedField] = useState<{
+    page: number;
+    boundingBox: ExtractedText["boundingBox"];
+  } | null>(null);
 
   const [azureConfig] = useState({
     endpoint:
@@ -49,6 +54,7 @@ export default function Home() {
     }
 
     clearResult();
+    setHighlightedField(null); // Clear any highlighted field
 
     // Auto-switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
@@ -68,6 +74,7 @@ export default function Home() {
     const url = URL.createObjectURL(uploadedFile.file);
     setPdfUrl(url);
     clearResult();
+    setHighlightedField(null); // Clear any highlighted field
 
     // Auto-switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
@@ -75,6 +82,16 @@ export default function Home() {
     if (azureConfig.endpoint && azureConfig.apiKey) {
       analyzeDocument(uploadedFile.file);
     }
+  };
+
+  const handleFieldClick = (field: ExtractedText) => {
+    setHighlightedField({
+      page: field.page,
+      boundingBox: field.boundingBox,
+    });
+
+    // Auto-switch to viewer tab on mobile when field is clicked
+    setMobileActiveTab("viewer");
   };
 
   const configurationMissing = !azureConfig.endpoint || !azureConfig.apiKey;
@@ -223,7 +240,9 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
             <div className="flex items-center space-x-2 sm:space-x-4">
               <span className="text-xs sm:text-sm font-medium text-gray-900">
-                Page 1 - 10 fields
+                {highlightedField
+                  ? `Highlighting field on Page ${highlightedField.page}`
+                  : `Page 1 - ${result?.extractedTexts.length || 0} fields`}
               </span>
               <span className="text-xs text-gray-500">74%</span>
             </div>
@@ -244,7 +263,11 @@ export default function Home() {
         {/* PDF Viewer Content */}
         <div className="flex-1 bg-gray-100">
           {selectedFile ? (
-            <PdfViewer src={pdfUrl} debugMode={debugMode} />
+            <PdfViewer
+              src={pdfUrl}
+              debugMode={debugMode}
+              highlightedField={highlightedField}
+            />
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -284,6 +307,7 @@ export default function Home() {
           isAnalyzing={isAnalyzing}
           error={error}
           configurationMissing={configurationMissing}
+          onFieldClick={handleFieldClick}
         />
       </div>
     </div>
