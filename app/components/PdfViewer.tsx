@@ -491,7 +491,7 @@ export default function PdfViewer({
                 onDocumentLoad={handleDocumentLoad}
                 onPageChange={handlePageChange}
                 initialPage={currentPage}
-                defaultScale={1}
+                defaultScale={0.8}
               />
             </div>
           </Worker>
