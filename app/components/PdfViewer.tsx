@@ -159,26 +159,39 @@ export default function PdfViewer({
       const widthPercent = (scaledWidth / pageRect.width) * 100;
       const heightPercent = (scaledHeight / pageRect.height) * 100;
 
+      // Add padding to make the bounding box slightly larger than the text
+      const paddingPercent = 0.2; // 0.2% padding on all sides
+      const adjustedLeft = Math.max(0, leftPercent - paddingPercent);
+      const adjustedTop = Math.max(0, topPercent - paddingPercent);
+      const adjustedWidth = Math.min(
+        100 - adjustedLeft,
+        widthPercent + 2 * paddingPercent
+      );
+      const adjustedHeight = Math.min(
+        100 - adjustedTop,
+        heightPercent + 2 * paddingPercent
+      );
+
       console.log(
         "Calculated position - Left:",
-        leftPercent,
+        adjustedLeft,
         "Top:",
-        topPercent,
+        adjustedTop,
         "Width:",
-        widthPercent,
+        adjustedWidth,
         "Height:",
-        heightPercent
+        adjustedHeight
       );
 
       // Apply styles
       Object.assign(boundingBoxElement.style, {
         position: "absolute",
-        left: `${leftPercent}%`,
-        top: `${topPercent}%`,
-        width: `${widthPercent}%`,
-        height: `${heightPercent}%`,
+        left: `${adjustedLeft}%`,
+        top: `${adjustedTop}%`,
+        width: `${adjustedWidth}%`,
+        height: `${adjustedHeight}%`,
         border: "3px solid #8b5cf6",
-        backgroundColor: "rgba(139, 92, 246, 0.1)",
+        backgroundColor: "rgba(139, 92, 246, 0.05)", // Reduced opacity from 0.1 to 0.05
         pointerEvents: "auto",
         zIndex: "1000",
         borderRadius: "2px",
@@ -258,18 +271,18 @@ export default function PdfViewer({
           0%,
           100% {
             border-color: #8b5cf6;
-            background-color: rgba(139, 92, 246, 0.1);
+            background-color: rgba(139, 92, 246, 0.05);
             box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
           }
           50% {
             border-color: #a78bfa;
-            background-color: rgba(139, 92, 246, 0.2);
+            background-color: rgba(139, 92, 246, 0.1);
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
           }
         }
         .bounding-box-highlight:hover {
           border-color: #7c3aed !important;
-          background-color: rgba(139, 92, 246, 0.2) !important;
+          background-color: rgba(139, 92, 246, 0.1) !important;
           box-shadow: 0 0 15px rgba(139, 92, 246, 0.8) !important;
           animation: none !important;
         }
