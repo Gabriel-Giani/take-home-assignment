@@ -68,7 +68,7 @@ export default function FileUpload({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`
-          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200
+          relative border-2 border-dashed rounded-lg p-4 md:p-6 text-center cursor-pointer transition-all duration-200 touch-manipulation
           ${
             dragOver
               ? "border-blue-400 bg-blue-50 scale-105"
@@ -91,10 +91,10 @@ export default function FileUpload({
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="space-y-2 md:space-y-3">
+            <div className="mx-auto w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <svg
-                className="w-6 h-6 text-blue-600"
+                className="w-5 h-5 md:w-6 md:h-6 text-blue-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -108,9 +108,15 @@ export default function FileUpload({
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Upload new</p>
-              <p className="text-xs text-gray-500 mt-1">
-                Drag and drop a PDF file here, or click to browse
+              <p className="text-sm md:text-base font-medium text-gray-900">
+                Upload new
+              </p>
+              <p className="text-xs md:text-sm text-gray-500 mt-1">
+                <span className="hidden sm:inline">
+                  Drag and drop a PDF file here, or{" "}
+                </span>
+                <span className="sm:hidden">Tap to </span>
+                <span className="hidden sm:inline">click to </span>browse
               </p>
             </div>
           </div>

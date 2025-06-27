@@ -13,6 +13,9 @@ export default function Home() {
     Array<{ file: File; name: string; size: string }>
   >([]);
   const [debugMode, setDebugMode] = useState(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState<
+    "files" | "viewer" | "analysis"
+  >("files");
 
   const [azureConfig] = useState({
     endpoint:
@@ -47,6 +50,9 @@ export default function Home() {
 
     clearResult();
 
+    // Auto-switch to viewer tab on mobile when file is selected
+    setMobileActiveTab("viewer");
+
     // Auto-analyze the document
     if (azureConfig.endpoint && azureConfig.apiKey) {
       analyzeDocument(file);
@@ -63,6 +69,9 @@ export default function Home() {
     setPdfUrl(url);
     clearResult();
 
+    // Auto-switch to viewer tab on mobile when file is selected
+    setMobileActiveTab("viewer");
+
     if (azureConfig.endpoint && azureConfig.apiKey) {
       analyzeDocument(uploadedFile.file);
     }
@@ -71,12 +80,54 @@ export default function Home() {
   const configurationMissing = !azureConfig.endpoint || !azureConfig.apiKey;
 
   return (
-    <div className="h-screen flex bg-gray-50">
+    <div className="h-screen flex flex-col md:flex-row bg-gray-50">
+      {/* Mobile Navigation */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-2">
+        <div className="flex space-x-1">
+          <button
+            onClick={() => setMobileActiveTab("files")}
+            className={`flex-1 px-3 py-2 text-sm rounded-md ${
+              mobileActiveTab === "files"
+                ? "bg-blue-100 text-blue-700"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            📁 Files
+          </button>
+          <button
+            onClick={() => setMobileActiveTab("viewer")}
+            className={`flex-1 px-3 py-2 text-sm rounded-md ${
+              mobileActiveTab === "viewer"
+                ? "bg-blue-100 text-blue-700"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            📄 Viewer
+          </button>
+          <button
+            onClick={() => setMobileActiveTab("analysis")}
+            className={`flex-1 px-3 py-2 text-sm rounded-md ${
+              mobileActiveTab === "analysis"
+                ? "bg-blue-100 text-blue-700"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            📊 Analysis
+          </button>
+        </div>
+      </div>
+
       {/* Left Sidebar - File List */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div
+        className={`w-full md:w-80 bg-white border-r border-gray-200 flex flex-col ${
+          mobileActiveTab !== "files" ? "hidden md:flex" : ""
+        }`}
+      >
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-gray-900">All files</h2>
+            <h2 className="text-sm md:text-base font-medium text-gray-900">
+              All files
+            </h2>
             <span className="text-xs text-gray-500">
               {uploadedFiles.length}
             </span>
@@ -125,7 +176,7 @@ export default function Home() {
                 <div
                   key={index}
                   onClick={() => handleFileFromList(uploadedFile)}
-                  className={`p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                  className={`p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 touch-manipulation ${
                     selectedFile?.name === uploadedFile.name
                       ? "bg-blue-50 border border-blue-200"
                       : ""
@@ -162,18 +213,22 @@ export default function Home() {
       </div>
 
       {/* Center - PDF Viewer */}
-      <div className="flex-1 flex flex-col">
+      <div
+        className={`flex-1 flex flex-col ${
+          mobileActiveTab !== "viewer" ? "hidden md:flex" : ""
+        }`}
+      >
         {/* PDF Viewer Header */}
         <div className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm font-medium text-gray-900">
                 Page 1 - 10 fields
               </span>
               <span className="text-xs text-gray-500">74%</span>
             </div>
             <div className="flex items-center space-x-2">
-              <label className="flex items-center space-x-2 text-sm">
+              <label className="flex items-center space-x-2 text-xs sm:text-sm">
                 <input
                   type="checkbox"
                   checked={debugMode}
@@ -219,7 +274,11 @@ export default function Home() {
       </div>
 
       {/* Right Sidebar - Document Analysis */}
-      <div className="w-80 bg-white border-l border-gray-200">
+      <div
+        className={`w-full md:w-80 bg-white border-l border-gray-200 ${
+          mobileActiveTab !== "analysis" ? "hidden md:block" : ""
+        }`}
+      >
         <DocumentAnalysis
           result={result}
           isAnalyzing={isAnalyzing}
