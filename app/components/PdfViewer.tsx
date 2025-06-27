@@ -102,16 +102,32 @@ export default function PdfViewer({
     const attachBoundingBoxToPage = () => {
       if (!highlightedField || !viewerContainerRef.current) return;
 
-      const pageElement = viewerContainerRef.current.querySelector(
+      // Find the specific page element for the highlighted field's page
+      const pageElements = viewerContainerRef.current.querySelectorAll(
         ".rpv-core__page-layer"
-      ) as HTMLElement;
-      if (!pageElement) return;
+      );
+      const targetPageIndex = highlightedField.page - 1; // Convert to 0-based index
+      const pageElement = pageElements[targetPageIndex] as HTMLElement;
 
-      // Remove any existing bounding box
-      const existingBox = pageElement.querySelector(".attached-bounding-box");
-      if (existingBox) {
-        existingBox.remove();
+      if (!pageElement) {
+        console.log("Page element not found for page:", highlightedField.page);
+        return;
       }
+
+      console.log(
+        "Attaching bounding box to page:",
+        highlightedField.page,
+        "Element found:",
+        !!pageElement
+      );
+
+      // Remove any existing bounding box from all pages
+      pageElements.forEach((page) => {
+        const existingBox = page.querySelector(".attached-bounding-box");
+        if (existingBox) {
+          existingBox.remove();
+        }
+      });
 
       // Create new bounding box element
       const boundingBoxElement = document.createElement("div");
@@ -119,6 +135,9 @@ export default function PdfViewer({
 
       const { boundingBox } = highlightedField;
       const pageRect = pageElement.getBoundingClientRect();
+
+      console.log("Page rect:", pageRect);
+      console.log("Bounding box coords:", boundingBox);
 
       // Calculate position as percentages relative to the page
       const pixelsPerInch = 72;
@@ -139,6 +158,17 @@ export default function PdfViewer({
       const topPercent = (scaledY / pageRect.height) * 100;
       const widthPercent = (scaledWidth / pageRect.width) * 100;
       const heightPercent = (scaledHeight / pageRect.height) * 100;
+
+      console.log(
+        "Calculated position - Left:",
+        leftPercent,
+        "Top:",
+        topPercent,
+        "Width:",
+        widthPercent,
+        "Height:",
+        heightPercent
+      );
 
       // Apply styles
       Object.assign(boundingBoxElement.style, {
@@ -164,7 +194,7 @@ export default function PdfViewer({
         }
       });
 
-      // Attach to page element
+      // Attach to the correct page element
       pageElement.style.position = "relative"; // Ensure page element is positioned
       pageElement.appendChild(boundingBoxElement);
     };
@@ -174,22 +204,20 @@ export default function PdfViewer({
 
     return () => {
       clearTimeout(timeout);
-      // Cleanup: remove bounding box when component unmounts or field changes
+      // Cleanup: remove bounding box from all pages when component unmounts or field changes
       if (viewerContainerRef.current) {
-        const pageElement = viewerContainerRef.current.querySelector(
+        const pageElements = viewerContainerRef.current.querySelectorAll(
           ".rpv-core__page-layer"
-        ) as HTMLElement;
-        if (pageElement) {
-          const existingBox = pageElement.querySelector(
-            ".attached-bounding-box"
-          );
+        );
+        pageElements.forEach((page) => {
+          const existingBox = page.querySelector(".attached-bounding-box");
           if (existingBox) {
             existingBox.remove();
           }
-        }
+        });
       }
     };
-  }, [highlightedField, onBoundingBoxClick]); // Removed currentPage and scale dependencies
+  }, [highlightedField, onBoundingBoxClick]);
 
   // Effect to show/hide bounding box based on current page
   useEffect(() => {
@@ -200,21 +228,27 @@ export default function PdfViewer({
       highlightedField?.page
     );
 
-    // Temporarily disable this effect to test if it's causing the auto-scroll
-    // if (!viewerContainerRef.current) return;
+    if (!viewerContainerRef.current || !highlightedField) return;
 
-    // const pageElement = viewerContainerRef.current.querySelector(
-    //   ".rpv-core__page-layer"
-    // ) as HTMLElement;
-    // const boundingBox = pageElement?.querySelector(
-    //   ".attached-bounding-box"
-    // ) as HTMLElement;
-
-    // if (boundingBox && highlightedField) {
-    //   // Show bounding box only when on the correct page
-    //   const isOnCorrectPage = currentPage + 1 === highlightedField.page;
-    //   boundingBox.style.display = isOnCorrectPage ? "block" : "none";
-    // }
+    // Find all bounding boxes on all pages
+    const pageElements = viewerContainerRef.current.querySelectorAll(
+      ".rpv-core__page-layer"
+    );
+    pageElements.forEach((page, index) => {
+      const boundingBox = page.querySelector(
+        ".attached-bounding-box"
+      ) as HTMLElement;
+      if (boundingBox) {
+        // Show bounding box only when on the correct page
+        const isOnCorrectPage =
+          currentPage === index && currentPage + 1 === highlightedField.page;
+        boundingBox.style.display = isOnCorrectPage ? "block" : "none";
+        console.log(
+          `Page ${index + 1} bounding box display:`,
+          isOnCorrectPage ? "visible" : "hidden"
+        );
+      }
+    });
   }, [currentPage, highlightedField]);
 
   return (
