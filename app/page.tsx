@@ -20,7 +20,11 @@ export default function Home() {
   const [highlightedField, setHighlightedField] = useState<{
     page: number;
     boundingBox: ExtractedText["boundingBox"];
+    originalField: ExtractedText;
   } | null>(null);
+  const [scrollToField, setScrollToField] = useState<ExtractedText | null>(
+    null
+  );
 
   const [azureConfig] = useState({
     endpoint:
@@ -55,6 +59,7 @@ export default function Home() {
 
     clearResult();
     setHighlightedField(null); // Clear any highlighted field
+    setScrollToField(null); // Clear any scroll target
 
     // Auto-switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
@@ -75,6 +80,7 @@ export default function Home() {
     setPdfUrl(url);
     clearResult();
     setHighlightedField(null); // Clear any highlighted field
+    setScrollToField(null); // Clear any scroll target
 
     // Auto-switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
@@ -88,10 +94,21 @@ export default function Home() {
     setHighlightedField({
       page: field.page,
       boundingBox: field.boundingBox,
+      originalField: field,
     });
 
     // Auto-switch to viewer tab on mobile when field is clicked
     setMobileActiveTab("viewer");
+  };
+
+  const handleBoundingBoxClick = (field: ExtractedText) => {
+    setScrollToField(field);
+
+    // Auto-switch to analysis tab on mobile when bounding box is clicked
+    setMobileActiveTab("analysis");
+
+    // Clear the scroll target after a delay to avoid continuous scrolling
+    setTimeout(() => setScrollToField(null), 1000);
   };
 
   const configurationMissing = !azureConfig.endpoint || !azureConfig.apiKey;
@@ -267,6 +284,7 @@ export default function Home() {
               src={pdfUrl}
               debugMode={debugMode}
               highlightedField={highlightedField}
+              onBoundingBoxClick={handleBoundingBoxClick}
             />
           ) : (
             <div className="flex items-center justify-center h-full">
@@ -308,6 +326,7 @@ export default function Home() {
           error={error}
           configurationMissing={configurationMissing}
           onFieldClick={handleFieldClick}
+          scrollToField={scrollToField}
         />
       </div>
     </div>

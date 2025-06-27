@@ -7,7 +7,7 @@ import { zoomPlugin } from "@react-pdf-viewer/zoom";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import "@react-pdf-viewer/page-navigation/lib/styles/index.css";
 import "@react-pdf-viewer/zoom/lib/styles/index.css";
-import { BoundingBox } from "../services/documentIntelligence";
+import { BoundingBox, ExtractedText } from "../services/documentIntelligence";
 
 export interface PdfViewerProps {
   /**
@@ -22,7 +22,12 @@ export interface PdfViewerProps {
   highlightedField?: {
     page: number;
     boundingBox: BoundingBox;
+    originalField: ExtractedText; // The original extracted text object
   } | null;
+  /**
+   * Callback when the purple bounding box is clicked
+   */
+  onBoundingBoxClick?: (field: ExtractedText) => void;
 }
 
 /**
@@ -35,6 +40,7 @@ export default function PdfViewer({
   src,
   debugMode = false,
   highlightedField,
+  onBoundingBoxClick,
 }: PdfViewerProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [numPages, setNumPages] = useState(0);
@@ -187,11 +193,12 @@ export default function PdfViewer({
       height: `${scaledHeight}px`,
       border: "3px solid #8b5cf6",
       backgroundColor: "rgba(139, 92, 246, 0.1)",
-      pointerEvents: "none" as const,
+      pointerEvents: "auto" as const,
       zIndex: 1000,
       borderRadius: "2px",
       animation: "pulse 2s ease-in-out infinite",
       boxShadow: "0 0 10px rgba(139, 92, 246, 0.5)",
+      cursor: "pointer",
     };
 
     console.log("Final bounding box style:", finalStyle);
@@ -213,6 +220,12 @@ export default function PdfViewer({
             background-color: rgba(139, 92, 246, 0.2);
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.8);
           }
+        }
+        .bounding-box-highlight:hover {
+          border-color: #7c3aed !important;
+          background-color: rgba(139, 92, 246, 0.2) !important;
+          box-shadow: 0 0 15px rgba(139, 92, 246, 0.8) !important;
+          animation: none !important;
         }
       `}</style>
 
@@ -393,6 +406,11 @@ export default function PdfViewer({
               <div
                 style={getBoundingBoxStyle()}
                 className="bounding-box-highlight"
+                onClick={() => {
+                  if (highlightedField && onBoundingBoxClick) {
+                    onBoundingBoxClick(highlightedField.originalField);
+                  }
+                }}
               />
 
               <Viewer

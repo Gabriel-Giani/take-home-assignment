@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   DocumentAnalysisResult,
   ExtractedText,
@@ -12,6 +12,7 @@ export interface DocumentAnalysisProps {
   error: string | null;
   configurationMissing: boolean;
   onFieldClick?: (field: ExtractedText) => void;
+  scrollToField?: ExtractedText | null; // Field to scroll to
 }
 
 export default function DocumentAnalysis({
@@ -20,8 +21,66 @@ export default function DocumentAnalysis({
   error,
   configurationMissing,
   onFieldClick,
+  scrollToField,
 }: DocumentAnalysisProps) {
   const [activeTab, setActiveTab] = useState<"fields" | "json">("fields");
+  const fieldRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Convert extracted text to fields format
+  const extractFields = () => {
+    return (
+      result?.extractedTexts.map((text, index) => ({
+        id: `field_${index}`, // Add unique ID
+        name: `Field_${index + 1}`,
+        value: text.content.trim(),
+        confidence: text.confidence || 0.95,
+        page: text.page,
+        type: "text" as const,
+        originalText: text, // Keep reference to original extracted text
+      })) || []
+    );
+  };
+
+  // Scroll to field when scrollToField prop changes
+  useEffect(() => {
+    if (scrollToField && result) {
+      const fields = extractFields();
+      const fieldToScrollTo = fields.find(
+        (field) =>
+          field.originalText.content === scrollToField.content &&
+          field.originalText.boundingBox.xMin ===
+            scrollToField.boundingBox.xMin &&
+          field.originalText.boundingBox.yMin === scrollToField.boundingBox.yMin
+      );
+
+      if (fieldToScrollTo && fieldRefs.current[fieldToScrollTo.id]) {
+        const fieldElement = fieldRefs.current[fieldToScrollTo.id];
+        if (fieldElement && scrollContainerRef.current) {
+          // Ensure we're on the fields tab
+          setActiveTab("fields");
+
+          // Scroll to the field with some offset
+          setTimeout(() => {
+            fieldElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+              inline: "nearest",
+            });
+
+            // Add temporary highlight effect
+            fieldElement.style.backgroundColor = "rgba(139, 92, 246, 0.2)";
+            fieldElement.style.borderColor = "#8b5cf6";
+            setTimeout(() => {
+              fieldElement.style.backgroundColor = "";
+              fieldElement.style.borderColor = "";
+            }, 2000);
+          }, 100);
+        }
+      }
+    }
+  }, [scrollToField, result]);
+
   if (configurationMissing) {
     return (
       <div className="h-full flex flex-col">
@@ -156,18 +215,6 @@ export default function DocumentAnalysis({
     );
   }
 
-  // Convert extracted text to fields format
-  const extractFields = () => {
-    return result.extractedTexts.map((text, index) => ({
-      name: `Field_${index + 1}`,
-      value: text.content.trim(),
-      confidence: text.confidence || 0.95,
-      page: text.page,
-      type: "text" as const,
-      originalText: text, // Keep reference to original extracted text
-    }));
-  };
-
   const fields = extractFields();
   const getConfidenceColor = (confidence: number) => {
     if (confidence >= 0.98) return "text-green-600 bg-green-50";
@@ -287,7 +334,7 @@ export default function DocumentAnalysis({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         {activeTab === "fields" ? (
           <div className="p-3 md:p-4">
             <div className="flex items-center space-x-2 mb-4">
@@ -311,9 +358,12 @@ export default function DocumentAnalysis({
             </div>
 
             <div className="space-y-3">
-              {fields.map((field, index) => (
+              {fields.map((field) => (
                 <div
-                  key={index}
+                  key={field.id}
+                  ref={(el) => {
+                    fieldRefs.current[field.id] = el;
+                  }}
                   onClick={() => handleFieldClick(field)}
                   className="border border-gray-200 rounded-lg p-3 touch-manipulation cursor-pointer hover:bg-gray-50 hover:border-purple-300 transition-all duration-200 group"
                   title="Click to highlight this field on the PDF"
