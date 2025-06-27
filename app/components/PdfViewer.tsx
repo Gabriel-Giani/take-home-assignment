@@ -110,100 +110,99 @@ export default function PdfViewer({
     }
   }, [highlightedField, jumpToPage, currentPage]);
 
-  // Calculate bounding box position for overlay
-  const getBoundingBoxStyle = () => {
-    if (
-      !highlightedField ||
-      highlightedField.page !== currentPage + 1 ||
-      !viewerContainerRef.current
-    ) {
-      return { display: "none" };
-    }
+  // Effect to attach bounding box directly to the PDF page
+  useEffect(() => {
+    const attachBoundingBoxToPage = () => {
+      if (!highlightedField || !viewerContainerRef.current) return;
 
-    console.log("Calculating bounding box with scale:", scale);
-    console.log("Highlighted field:", highlightedField);
+      const pageElement = viewerContainerRef.current.querySelector(
+        ".rpv-core__page-layer"
+      ) as HTMLElement;
+      if (!pageElement) return;
 
-    const { boundingBox } = highlightedField;
-    console.log("BoundingBox values:", {
-      xMin: boundingBox.xMin,
-      yMin: boundingBox.yMin,
-      xMax: boundingBox.xMax,
-      yMax: boundingBox.yMax,
-      width: boundingBox.xMax - boundingBox.xMin,
-      height: boundingBox.yMax - boundingBox.yMin,
-    });
+      // Remove any existing bounding box
+      const existingBox = pageElement.querySelector(".attached-bounding-box");
+      if (existingBox) {
+        existingBox.remove();
+      }
 
-    // Find the PDF page container
-    const pageElement = viewerContainerRef.current.querySelector(
-      ".rpv-core__page-layer"
-    );
-    if (!pageElement) {
-      console.log("Page element not found");
-      return { display: "none" };
-    }
+      // Create new bounding box element
+      const boundingBoxElement = document.createElement("div");
+      boundingBoxElement.className = "attached-bounding-box";
 
-    const pageRect = pageElement.getBoundingClientRect();
-    const containerRect = viewerContainerRef.current.getBoundingClientRect();
+      const { boundingBox } = highlightedField;
+      const pageRect = pageElement.getBoundingClientRect();
 
-    console.log("Page rect:", pageRect);
-    console.log("Container rect:", containerRect);
+      // Calculate position as percentages relative to the page
+      const pixelsPerInch = 72;
+      const pixelX = boundingBox.xMin * pixelsPerInch;
+      const pixelY = boundingBox.yMin * pixelsPerInch;
+      const pixelWidth = (boundingBox.xMax - boundingBox.xMin) * pixelsPerInch;
+      const pixelHeight = (boundingBox.yMax - boundingBox.yMin) * pixelsPerInch;
 
-    // Calculate relative position within the viewer container
-    const relativeLeft = pageRect.left - containerRect.left;
-    const relativeTop = pageRect.top - containerRect.top;
+      const scaleX = pageRect.width / 612;
+      const scaleY = pageRect.height / 792;
 
-    // Azure Document Intelligence coordinates are in inches from bottom-left
-    // Convert to pixels and flip Y coordinate
-    const pixelsPerInch = 72; // Standard PDF resolution
+      const scaledX = pixelX * scaleX;
+      const scaledY = pixelY * scaleY;
+      const scaledWidth = pixelWidth * scaleX;
+      const scaledHeight = pixelHeight * scaleY;
 
-    // Convert from inches to pixels
-    const pixelX = boundingBox.xMin * pixelsPerInch;
-    const pixelY = boundingBox.yMin * pixelsPerInch;
-    const pixelWidth = (boundingBox.xMax - boundingBox.xMin) * pixelsPerInch;
-    const pixelHeight = (boundingBox.yMax - boundingBox.yMin) * pixelsPerInch;
+      const leftPercent = (scaledX / pageRect.width) * 100;
+      const topPercent = (scaledY / pageRect.height) * 100;
+      const widthPercent = (scaledWidth / pageRect.width) * 100;
+      const heightPercent = (scaledHeight / pageRect.height) * 100;
 
-    // Scale to current page display size (page is 612x792 points standard)
-    const scaleX = pageRect.width / 612;
-    const scaleY = pageRect.height / 792;
+      // Apply styles
+      Object.assign(boundingBoxElement.style, {
+        position: "absolute",
+        left: `${leftPercent}%`,
+        top: `${topPercent}%`,
+        width: `${widthPercent}%`,
+        height: `${heightPercent}%`,
+        border: "3px solid #8b5cf6",
+        backgroundColor: "rgba(139, 92, 246, 0.1)",
+        pointerEvents: "auto",
+        zIndex: "1000",
+        borderRadius: "2px",
+        animation: "pulse 2s ease-in-out infinite",
+        boxShadow: "0 0 10px rgba(139, 92, 246, 0.5)",
+        cursor: "pointer",
+      });
 
-    // Try assuming coordinates are already top-left origin (not bottom-left)
-    const scaledX = pixelX * scaleX;
-    const scaledY = pixelY * scaleY; // Don't flip Y - test if coordinates are already top-left
-    const scaledWidth = pixelWidth * scaleX;
-    const scaledHeight = pixelHeight * scaleY;
+      // Add click handler
+      boundingBoxElement.addEventListener("click", () => {
+        if (onBoundingBoxClick && highlightedField) {
+          onBoundingBoxClick(highlightedField.originalField);
+        }
+      });
 
-    console.log("Conversion steps:", {
-      pixelX,
-      pixelY,
-      pixelWidth,
-      pixelHeight,
-      scaleX,
-      scaleY,
-      scaledX,
-      scaledY,
-      scaledWidth,
-      scaledHeight,
-    });
-
-    const finalStyle = {
-      position: "absolute" as const,
-      left: `${relativeLeft + scaledX}px`,
-      top: `${relativeTop + scaledY}px`,
-      width: `${scaledWidth}px`,
-      height: `${scaledHeight}px`,
-      border: "3px solid #8b5cf6",
-      backgroundColor: "rgba(139, 92, 246, 0.1)",
-      pointerEvents: "auto" as const,
-      zIndex: 1000,
-      borderRadius: "2px",
-      animation: "pulse 2s ease-in-out infinite",
-      boxShadow: "0 0 10px rgba(139, 92, 246, 0.5)",
-      cursor: "pointer",
+      // Attach to page element
+      pageElement.style.position = "relative"; // Ensure page element is positioned
+      pageElement.appendChild(boundingBoxElement);
     };
 
-    console.log("Final bounding box style:", finalStyle);
-    return finalStyle;
-  };
+    // Wait for PDF to load then attach
+    const timeout = setTimeout(attachBoundingBoxToPage, 500);
+
+    return () => {
+      clearTimeout(timeout);
+      // Cleanup: remove bounding box when component unmounts or field changes
+      if (viewerContainerRef.current) {
+        const pageElement = viewerContainerRef.current.querySelector(
+          ".rpv-core__page-layer"
+        ) as HTMLElement;
+        if (pageElement) {
+          const existingBox = pageElement.querySelector(
+            ".attached-bounding-box"
+          );
+          if (existingBox) {
+            existingBox.remove();
+          }
+        }
+      }
+    };
+  }, [highlightedField, currentPage, scale, onBoundingBoxClick]);
 
   return (
     <div className="h-full flex flex-col bg-gray-100">
@@ -401,17 +400,6 @@ export default function PdfViewer({
                   DEBUG MODE
                 </div>
               )}
-
-              {/* Bounding box overlay */}
-              <div
-                style={getBoundingBoxStyle()}
-                className="bounding-box-highlight"
-                onClick={() => {
-                  if (highlightedField && onBoundingBoxClick) {
-                    onBoundingBoxClick(highlightedField.originalField);
-                  }
-                }}
-              />
 
               <Viewer
                 fileUrl={src}
