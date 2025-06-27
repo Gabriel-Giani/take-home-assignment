@@ -14,6 +14,7 @@ export interface PdfViewerProps {
    * Example: "/tickets.pdf" (served from the `public` folder)
    */
   src: string;
+  debugMode?: boolean;
 }
 
 /**
@@ -22,7 +23,7 @@ export interface PdfViewerProps {
  * The component disables server-side rendering (via the `use client` directive)
  * because `pdfjs` relies on browser APIs.
  */
-export default function PdfViewer({ src }: PdfViewerProps) {
+export default function PdfViewer({ src, debugMode = false }: PdfViewerProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [numPages, setNumPages] = useState(0);
 
@@ -207,14 +208,22 @@ export default function PdfViewer({ src }: PdfViewerProps) {
             workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjsVersion}/build/pdf.worker.min.js`}
           >
             <div
-              className="pdf-container"
+              className={`pdf-container relative ${
+                debugMode ? "debug-mode" : ""
+              }`}
               style={{
                 height: "600px",
-                border: "1px solid #ddd",
+                border: debugMode ? "2px solid #ef4444" : "1px solid #ddd",
                 borderRadius: "8px",
                 overflow: "auto",
+                backgroundColor: debugMode ? "#fef2f2" : "white",
               }}
             >
+              {debugMode && (
+                <div className="absolute top-2 right-2 z-10 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
+                  DEBUG MODE
+                </div>
+              )}
               <Viewer
                 fileUrl={src}
                 plugins={[pageNavigationPluginInstance, zoomPluginInstance]}

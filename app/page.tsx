@@ -2,15 +2,18 @@
 
 import { useState } from "react";
 import PdfViewer from "./components/PdfViewer";
-import TabbedResultsViewer from "./components/TabbedResultsViewer";
 import FileUpload from "./components/FileUpload";
+import DocumentAnalysis from "./components/DocumentAnalysis";
 import { useDocumentIntelligence } from "./hooks/useDocumentIntelligence";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string>("/tickets.pdf"); // Default PDF
+  const [pdfUrl, setPdfUrl] = useState<string>("/tickets.pdf");
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Array<{ file: File; name: string; size: string }>
+  >([]);
+  const [debugMode, setDebugMode] = useState(false);
 
-  // You'll need to set these from environment variables or user input
   const [azureConfig] = useState({
     endpoint:
       process.env.NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT || "",
@@ -22,169 +25,208 @@ export default function Home() {
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
-    // Create a URL for the PDF viewer
     const url = URL.createObjectURL(file);
     setPdfUrl(url);
-    // Clear previous results
-    clearResult();
-  };
 
-  const handleAnalyzePdf = async () => {
-    if (!selectedFile) {
-      alert("Please select a PDF file first");
-      return;
+    // Add to uploaded files list if not already there
+    const fileExists = uploadedFiles.some(
+      (f) =>
+        f.name === file.name &&
+        f.size === (file.size / 1024 / 1024).toFixed(2) + " MB"
+    );
+    if (!fileExists) {
+      setUploadedFiles((prev) => [
+        ...prev,
+        {
+          file,
+          name: file.name,
+          size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+        },
+      ]);
     }
 
-    try {
-      await analyzeDocument(selectedFile);
-    } catch (err) {
-      console.error("Failed to analyze PDF:", err);
-      // The error is already handled by the hook, but we can add additional logging here
+    clearResult();
+
+    // Auto-analyze the document
+    if (azureConfig.endpoint && azureConfig.apiKey) {
+      analyzeDocument(file);
+    }
+  };
+
+  const handleFileFromList = (uploadedFile: {
+    file: File;
+    name: string;
+    size: string;
+  }) => {
+    setSelectedFile(uploadedFile.file);
+    const url = URL.createObjectURL(uploadedFile.file);
+    setPdfUrl(url);
+    clearResult();
+
+    if (azureConfig.endpoint && azureConfig.apiKey) {
+      analyzeDocument(uploadedFile.file);
     }
   };
 
   const configurationMissing = !azureConfig.endpoint || !azureConfig.apiKey;
 
   return (
-    <main className="h-screen flex flex-col">
-      {/* Header with controls */}
-      <div className="border-b border-gray-300 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-semibold">PDF Document Intelligence</h1>
-          {result && (
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span className="bg-blue-50 px-2 py-1 rounded">
-                📄 {result.pages} page{result.pages !== 1 ? "s" : ""}
-              </span>
-              <span className="bg-green-50 px-2 py-1 rounded">
-                📝 {result.extractedTexts.length} elements
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-4">
-          {configurationMissing && (
-            <div className="text-sm text-red-600 bg-red-50 px-3 py-1 rounded">
-              ⚠️ Azure Document Intelligence not configured
-            </div>
-          )}
-          <button
-            onClick={handleAnalyzePdf}
-            disabled={isAnalyzing || configurationMissing || !selectedFile}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isAnalyzing ? "Analyzing..." : "Analyze PDF"}
-          </button>
-          {result && (
-            <button
-              onClick={clearResult}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
-            >
-              Clear Results
-            </button>
-          )}
-        </div>
-      </div>
+    <div className="h-screen flex bg-gray-50">
+      {/* Left Sidebar - File List */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-gray-900">All files</h2>
+            <span className="text-xs text-gray-500">
+              {uploadedFiles.length}
+            </span>
+          </div>
 
-      {/* Error display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 mx-4 mt-4 rounded">
-          <strong>Error:</strong> {error}
-        </div>
-      )}
-
-      {/* Configuration help */}
-      {configurationMissing && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 mx-4 mt-4 rounded">
-          <strong>Configuration Required:</strong> Please set the following
-          environment variables:
-          <ul className="mt-2 ml-4 list-disc text-sm">
-            <li>
-              <code>NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT</code>
-            </li>
-            <li>
-              <code>NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_API_KEY</code>
-            </li>
-          </ul>
-          <p className="mt-2 text-sm">
-            You can create a Document Intelligence resource in the Azure portal
-            and copy the endpoint and key.
-          </p>
-        </div>
-      )}
-
-      {/* Main content */}
-      <div className="flex-1 grid grid-cols-2 gap-2 p-4">
-        <div className="border border-gray-300 rounded-md p-2 overflow-auto">
-          <h2 className="text-lg font-medium mb-4 text-gray-700">
-            PDF Document
-          </h2>
-
-          {!selectedFile ? (
-            <div className="space-y-4">
-              <FileUpload
-                onFileSelect={handleFileSelect}
-                isAnalyzing={isAnalyzing}
-                disabled={configurationMissing}
-              />
-
-              <div className="text-center">
-                <div className="text-sm text-gray-500 mb-2">or</div>
-                <button
-                  onClick={() => {
-                    // Convert the default PDF to a File object for analysis
-                    fetch("/tickets.pdf")
-                      .then((res) => res.blob())
-                      .then((blob) => {
-                        const file = new File([blob], "tickets.pdf", {
-                          type: "application/pdf",
-                        });
-                        handleFileSelect(file);
-                      })
-                      .catch((err) =>
-                        console.error("Failed to load default PDF:", err)
-                      );
-                  }}
-                  className="text-blue-600 hover:text-blue-800 text-sm underline"
-                >
-                  Use sample PDF (tickets.pdf)
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded">
-                <div>
-                  <p className="font-medium text-gray-700">
-                    {selectedFile.name}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedFile(null);
-                    setPdfUrl("/tickets.pdf");
-                    clearResult();
-                  }}
-                  className="text-sm text-red-600 hover:text-red-800"
-                >
-                  Remove
-                </button>
-              </div>
-              <PdfViewer src={pdfUrl} />
-            </div>
-          )}
-        </div>
-
-        <div className="border border-gray-300 rounded-md overflow-hidden">
-          <TabbedResultsViewer
-            extractedTexts={result?.extractedTexts || []}
-            isLoading={isAnalyzing}
+          <FileUpload
+            onFileSelect={handleFileSelect}
+            isAnalyzing={isAnalyzing}
+            disabled={configurationMissing}
           />
         </div>
+
+        {/* Search */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search documents..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        {/* File List */}
+        <div className="flex-1 overflow-y-auto">
+          {uploadedFiles.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 text-sm">
+              No documents uploaded yet
+            </div>
+          ) : (
+            <div className="space-y-1 p-2">
+              {uploadedFiles.map((uploadedFile, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleFileFromList(uploadedFile)}
+                  className={`p-3 rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
+                    selectedFile?.name === uploadedFile.name
+                      ? "bg-blue-50 border border-blue-200"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="flex-shrink-0">
+                      <svg
+                        className="w-6 h-6 text-red-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {uploadedFile.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {uploadedFile.size}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </main>
+
+      {/* Center - PDF Viewer */}
+      <div className="flex-1 flex flex-col">
+        {/* PDF Viewer Header */}
+        <div className="bg-white border-b border-gray-200 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-gray-900">
+                Page 1 - 10 fields
+              </span>
+              <span className="text-xs text-gray-500">74%</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={debugMode}
+                  onChange={(e) => setDebugMode(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-gray-700">Debug Mode</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* PDF Viewer Content */}
+        <div className="flex-1 bg-gray-100">
+          {selectedFile ? (
+            <PdfViewer src={pdfUrl} debugMode={debugMode} />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <h3 className="mt-4 text-sm font-medium text-gray-900">
+                  No document selected
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Upload a PDF to get started
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Right Sidebar - Document Analysis */}
+      <div className="w-80 bg-white border-l border-gray-200">
+        <DocumentAnalysis
+          result={result}
+          isAnalyzing={isAnalyzing}
+          error={error}
+          configurationMissing={configurationMissing}
+        />
+      </div>
+    </div>
   );
 }
