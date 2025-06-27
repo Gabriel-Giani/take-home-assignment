@@ -44,8 +44,8 @@ export default function PdfViewer({
 }: PdfViewerProps) {
   const [currentPage, setCurrentPage] = useState(0);
   const [numPages, setNumPages] = useState(0);
-  const [scale, setScale] = useState(1);
   const viewerContainerRef = useRef<HTMLDivElement>(null);
+  const hasNavigatedRef = useRef<string | null>(null); // Track if we've navigated for current field
 
   // Use a CDN version of `pdfjs-dist` that matches the installed major version.
   const pdfjsVersion = "3.11.174";
@@ -70,45 +70,32 @@ export default function PdfViewer({
   };
 
   const handlePageChange = (e: { currentPage: number }) => {
+    console.log("Page changed to:", e.currentPage);
     setCurrentPage(e.currentPage);
   };
-
-  const handleZoom = (e: { scale: number }) => {
-    console.log("Zoom event:", e.scale);
-    setScale(e.scale);
-  };
-
-  // Track scale changes from the CurrentScale component
-  useEffect(() => {
-    const trackScale = () => {
-      if (viewerContainerRef.current) {
-        const scaleElement =
-          viewerContainerRef.current.querySelector(".rpv-zoom__scale");
-        if (scaleElement) {
-          const scaleText = scaleElement.textContent;
-          if (scaleText) {
-            const scaleValue = parseFloat(scaleText.replace("%", "")) / 100;
-            if (scaleValue !== scale) {
-              setScale(scaleValue);
-            }
-          }
-        }
-      }
-    };
-
-    const interval = setInterval(trackScale, 1000);
-    return () => clearInterval(interval);
-  }, [scale]);
 
   // Navigate to highlighted field's page when highlightedField changes
   useEffect(() => {
     if (highlightedField && jumpToPage) {
-      const targetPage = highlightedField.page - 1; // Convert to 0-based index
-      if (targetPage !== currentPage) {
+      const fieldId = `${highlightedField.originalField.content}-${highlightedField.page}`;
+
+      // Only navigate if we haven't already navigated for this specific field
+      if (hasNavigatedRef.current !== fieldId) {
+        console.log(
+          "Navigating to page:",
+          highlightedField.page - 1,
+          "for field:",
+          fieldId
+        );
+        const targetPage = highlightedField.page - 1; // Convert to 0-based index
         jumpToPage(targetPage);
+        hasNavigatedRef.current = fieldId;
       }
+    } else if (!highlightedField) {
+      // Clear the navigation flag when no field is highlighted
+      hasNavigatedRef.current = null;
     }
-  }, [highlightedField, jumpToPage, currentPage]);
+  }, [highlightedField, jumpToPage]);
 
   // Effect to attach bounding box directly to the PDF page
   useEffect(() => {
@@ -202,7 +189,33 @@ export default function PdfViewer({
         }
       }
     };
-  }, [highlightedField, currentPage, scale, onBoundingBoxClick]);
+  }, [highlightedField, onBoundingBoxClick]); // Removed currentPage and scale dependencies
+
+  // Effect to show/hide bounding box based on current page
+  useEffect(() => {
+    console.log(
+      "Show/hide effect triggered. Current page:",
+      currentPage,
+      "Highlighted field page:",
+      highlightedField?.page
+    );
+
+    // Temporarily disable this effect to test if it's causing the auto-scroll
+    // if (!viewerContainerRef.current) return;
+
+    // const pageElement = viewerContainerRef.current.querySelector(
+    //   ".rpv-core__page-layer"
+    // ) as HTMLElement;
+    // const boundingBox = pageElement?.querySelector(
+    //   ".attached-bounding-box"
+    // ) as HTMLElement;
+
+    // if (boundingBox && highlightedField) {
+    //   // Show bounding box only when on the correct page
+    //   const isOnCorrectPage = currentPage + 1 === highlightedField.page;
+    //   boundingBox.style.display = isOnCorrectPage ? "block" : "none";
+    // }
+  }, [currentPage, highlightedField]);
 
   return (
     <div className="h-full flex flex-col bg-gray-100">
@@ -406,7 +419,6 @@ export default function PdfViewer({
                 plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
                 onDocumentLoad={handleDocumentLoad}
                 onPageChange={handlePageChange}
-                onZoom={handleZoom}
                 initialPage={currentPage}
                 defaultScale={1}
               />
