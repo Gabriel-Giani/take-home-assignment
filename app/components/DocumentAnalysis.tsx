@@ -296,44 +296,6 @@ export default function DocumentAnalysis({
         </div>
       </div>
 
-      {/* Export/Import buttons */}
-      <div className="p-3 md:p-4 border-b border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between">
-          <button className="flex items-center justify-center space-x-2 px-3 py-2 text-xs md:text-sm border border-gray-300 rounded hover:bg-gray-50 touch-manipulation">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <span>Export Fields</span>
-          </button>
-          <button className="flex items-center justify-center space-x-2 px-3 py-2 text-xs md:text-sm border border-gray-300 rounded hover:bg-gray-50 touch-manipulation">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-              />
-            </svg>
-            <span>Import Fields</span>
-          </button>
-        </div>
-      </div>
-
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto" ref={scrollContainerRef}>
         {activeTab === "fields" ? (
@@ -425,26 +387,6 @@ export default function DocumentAnalysis({
                 <p className="text-sm">No text content extracted</p>
               </div>
             )}
-
-            {/* Export button at bottom */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <button className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-                <span>Export</span>
-              </button>
-            </div>
           </div>
         ) : (
           <div className="p-3 md:p-4">
