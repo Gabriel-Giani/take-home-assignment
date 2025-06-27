@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
+import webpack from "webpack";
 
 const nextConfig: NextConfig = {
   webpack: (config, { isServer }) => {
-    // Ignore Node.js modules that PDF.js tries to import in the browser
+    // PDF.js fix for serverless deployment
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -17,14 +18,17 @@ const nextConfig: NextConfig = {
         zlib: false,
         url: false,
         buffer: false,
+        util: false,
+        assert: false,
+        events: false,
       };
 
-      // Ignore specific modules that cause issues
-      config.externals = config.externals || [];
-      config.externals.push({
-        canvas: "canvas",
-        "pdf-parse": "pdf-parse",
-      });
+      // Use IgnorePlugin to ignore canvas and other Node.js modules
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^(canvas|jsdom)$/,
+        })
+      );
     }
 
     return config;
