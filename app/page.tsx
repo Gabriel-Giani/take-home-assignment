@@ -13,7 +13,6 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ file: File; name: string; size: string }>
   >([]);
-  const [debugMode, setDebugMode] = useState(false);
   const [mobileActiveTab, setMobileActiveTab] = useState<
     "files" | "viewer" | "analysis"
   >("files");
@@ -263,17 +262,6 @@ export default function Home() {
               </span>
               <span className="text-xs text-gray-500">74%</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <label className="flex items-center space-x-2 text-xs sm:text-sm">
-                <input
-                  type="checkbox"
-                  checked={debugMode}
-                  onChange={(e) => setDebugMode(e.target.checked)}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-gray-700">Debug Mode</span>
-              </label>
-            </div>
           </div>
         </div>
 
@@ -282,7 +270,6 @@ export default function Home() {
           {selectedFile ? (
             <PdfViewer
               src={pdfUrl}
-              debugMode={debugMode}
               highlightedField={highlightedField}
               onBoundingBoxClick={handleBoundingBoxClick}
             />
