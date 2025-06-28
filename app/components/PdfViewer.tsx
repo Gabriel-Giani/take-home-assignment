@@ -320,7 +320,7 @@ export default function PdfViewer({
               <button
                 onClick={props.onClick}
                 disabled={currentPage === 0}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-90 disabled:cursor-not-allowed transition-colors text-gray-700 disabled:text-gray-600"
                 title="Previous page"
               >
                 <svg
@@ -345,7 +345,7 @@ export default function PdfViewer({
               <button
                 onClick={props.onClick}
                 disabled={currentPage === numPages - 1}
-                className="p-2 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="p-2 rounded hover:bg-gray-100 disabled:opacity-90 disabled:cursor-not-allowed transition-colors text-gray-700 disabled:text-gray-600"
                 title="Next page"
               >
                 <svg
@@ -367,7 +367,7 @@ export default function PdfViewer({
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
             <span>Page</span>
             <CurrentPageInput />
             <span>of {numPages}</span>
@@ -378,7 +378,7 @@ export default function PdfViewer({
               {(props) => (
                 <button
                   onClick={props.onClick}
-                  className="p-2 rounded hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-700"
                   title="Zoom out"
                 >
                   <svg
@@ -398,7 +398,7 @@ export default function PdfViewer({
               )}
             </ZoomOut>
 
-            <div className="text-xs text-gray-500 min-w-[3rem] text-center">
+            <div className="text-xs text-gray-700 min-w-[3rem] text-center">
               <CurrentScale>
                 {(props) => <span>{Math.round(props.scale * 100)}%</span>}
               </CurrentScale>
@@ -408,7 +408,7 @@ export default function PdfViewer({
               {(props) => (
                 <button
                   onClick={props.onClick}
-                  className="p-2 rounded hover:bg-gray-100 transition-colors"
+                  className="p-2 rounded hover:bg-gray-100 transition-colors text-gray-700"
                   title="Zoom in"
                 >
                   <svg
@@ -436,7 +436,7 @@ export default function PdfViewer({
               <button
                 onClick={props.onClick}
                 disabled={currentPage === 0}
-                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-90 disabled:cursor-not-allowed transition-colors text-gray-700 disabled:text-gray-600"
                 title="First page"
               >
                 First
@@ -449,7 +449,7 @@ export default function PdfViewer({
               <button
                 onClick={props.onClick}
                 disabled={currentPage === numPages - 1}
-                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-1 text-xs rounded hover:bg-gray-100 disabled:opacity-90 disabled:cursor-not-allowed transition-colors text-gray-700 disabled:text-gray-600"
                 title="Last page"
               >
                 Last
