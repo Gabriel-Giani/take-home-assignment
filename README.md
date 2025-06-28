@@ -116,10 +116,6 @@ Displays analysis results with:
 | `NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT` | Your Azure Document Intelligence endpoint URL |
 | `NEXT_PUBLIC_AZURE_DOCUMENT_INTELLIGENCE_API_KEY`  | Your Azure Document Intelligence API key      |
 
-## Pricing
-
-Azure Document Intelligence pricing is based on the number of pages analyzed. Check the [Azure Pricing Calculator](https://azure.microsoft.com/pricing/calculator/) for current rates.
-
 ## Troubleshooting
 
 1. **Authentication Errors**: Verify your endpoint URL and API key
