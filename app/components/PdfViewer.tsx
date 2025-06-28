@@ -12,7 +12,6 @@ import { BoundingBox, ExtractedText } from "../services/documentIntelligence";
 export interface PdfViewerProps {
   /**
    * Absolute or relative URL to the PDF document.
-   * Example: "/tickets.pdf" (served from the `public` folder)
    */
   src: string;
   debugMode?: boolean;
@@ -47,7 +46,7 @@ export default function PdfViewer({
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const hasNavigatedRef = useRef<string | null>(null); // Track if we've navigated for current field
 
-  // Use a CDN version of `pdfjs-dist` that matches the installed major version.
+  // CDN version of pdfjs-dist that matches the installed major version.
   const pdfjsVersion = "3.11.174";
 
   // Create plugins
@@ -99,11 +98,13 @@ export default function PdfViewer({
 
   // Effect to attach bounding box directly to the PDF page
   useEffect(() => {
+    const viewerContainer = viewerContainerRef.current; // Capture ref value
+
     const attachBoundingBoxToPage = () => {
-      if (!highlightedField || !viewerContainerRef.current) return;
+      if (!highlightedField || !viewerContainer) return;
 
       // Find the specific page element for the highlighted field's page
-      const pageElements = viewerContainerRef.current.querySelectorAll(
+      const pageElements = viewerContainer.querySelectorAll(
         ".rpv-core__page-layer"
       );
       const targetPageIndex = highlightedField.page - 1; // Convert to 0-based index
@@ -139,7 +140,7 @@ export default function PdfViewer({
       console.log("Page rect:", pageRect);
       console.log("Bounding box coords:", boundingBox);
 
-      // Calculate position as percentages relative to the page
+      // position as percentages relative to the page
       const pixelsPerInch = 72;
       const pixelX = boundingBox.xMin * pixelsPerInch;
       const pixelY = boundingBox.yMin * pixelsPerInch;
@@ -159,8 +160,8 @@ export default function PdfViewer({
       const widthPercent = (scaledWidth / pageRect.width) * 100;
       const heightPercent = (scaledHeight / pageRect.height) * 100;
 
-      // Add padding to make the bounding box slightly larger than the text
-      const paddingPercent = 0.2; // 0.2% padding on all sides
+      // padding to make the bounding box slightly larger than the text
+      const paddingPercent = 0.2;
       const adjustedLeft = Math.max(0, leftPercent - paddingPercent);
       const adjustedTop = Math.max(0, topPercent - paddingPercent);
       const adjustedWidth = Math.min(
@@ -183,7 +184,6 @@ export default function PdfViewer({
         adjustedHeight
       );
 
-      // Apply styles
       Object.assign(boundingBoxElement.style, {
         position: "absolute",
         left: `${adjustedLeft}%`,
@@ -212,14 +212,14 @@ export default function PdfViewer({
       pageElement.appendChild(boundingBoxElement);
     };
 
-    // Wait for PDF to load then attach
+    // Wait for PDF to load
     const timeout = setTimeout(attachBoundingBoxToPage, 500);
 
     return () => {
       clearTimeout(timeout);
       // Cleanup: remove bounding box from all pages when component unmounts or field changes
-      if (viewerContainerRef.current) {
-        const pageElements = viewerContainerRef.current.querySelectorAll(
+      if (viewerContainer) {
+        const pageElements = viewerContainer.querySelectorAll(
           ".rpv-core__page-layer"
         );
         pageElements.forEach((page) => {
