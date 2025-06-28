@@ -1,15 +1,22 @@
 "use client";
 
+// React
 import { useState } from "react";
+
+// Components
 import PdfViewer from "./components/PdfViewer";
 import FileUpload from "./components/FileUpload";
 import DocumentAnalysis from "./components/DocumentAnalysis";
+
+// Hooks
 import { useDocumentIntelligence } from "./hooks/useDocumentIntelligence";
+
+// Types
 import { ExtractedText } from "./services/documentIntelligence";
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pdfUrl, setPdfUrl] = useState<string>("/tickets.pdf");
+  const [pdfUrl, setPdfUrl] = useState<string>("");
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ file: File; name: string; size: string }>
   >([]);
