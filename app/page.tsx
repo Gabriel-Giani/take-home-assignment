@@ -260,7 +260,6 @@ export default function Home() {
                   ? `Highlighting field on Page ${highlightedField.page}`
                   : `Page 1 - ${result?.extractedTexts.length || 0} fields`}
               </span>
-              <span className="text-xs text-gray-500">74%</span>
             </div>
           </div>
         </div>

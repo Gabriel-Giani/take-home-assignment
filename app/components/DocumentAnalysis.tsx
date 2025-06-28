@@ -27,17 +27,17 @@ export default function DocumentAnalysis({
   const fieldRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Convert extracted text to fields format
+  // convert extracted text to fields format
   const extractFields = useCallback(() => {
     return (
       result?.extractedTexts.map((text, index) => ({
-        id: `field_${index}`, // Add unique ID
+        id: `field_${index}`, // add unique field ID
         name: `Field_${index + 1}`,
         value: text.content.trim(),
         confidence: text.confidence || 0.95,
         page: text.page,
         type: "text" as const,
-        originalText: text, // Keep reference to original extracted text
+        originalText: text, // original extracted text
       })) || []
     );
   }, [result]);
@@ -57,7 +57,7 @@ export default function DocumentAnalysis({
       if (fieldToScrollTo && fieldRefs.current[fieldToScrollTo.id]) {
         const fieldElement = fieldRefs.current[fieldToScrollTo.id];
         if (fieldElement && scrollContainerRef.current) {
-          // Ensure we're on the fields tab
+          // Make sure we're on the fields tab
           setActiveTab("fields");
 
           // Scroll to the field with some offset
@@ -268,7 +268,9 @@ export default function DocumentAnalysis({
           <h2 className="text-base md:text-lg font-semibold text-gray-900">
             Document Analysis
           </h2>
-          <span className="text-xs text-gray-500">{fields.length}/∞</span>
+          <span className="text-xs text-gray-500">
+            {fields.length} {fields.length === 1 ? "field" : "fields"}
+          </span>
         </div>
 
         {/* Fields and JSON buttons */}
