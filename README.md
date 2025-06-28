@@ -1,6 +1,6 @@
 # PDF Document Intelligence with Azure
 
-This Next.js application demonstrates how to use Microsoft Azure Document Intelligence (formerly Form Recognizer) to extract text and bounding box coordinates from PDF documents using OCR.
+This Next.js application demonstrates how to use Microsoft Azure Document Intelligence to extract text and bounding box coordinates from PDF documents using OCR.
 
 ## Features
 
