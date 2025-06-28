@@ -109,7 +109,7 @@ export default function FileUpload({
             </div>
             <div>
               <p className="text-sm md:text-base font-medium text-gray-900">
-                Upload new
+                Upload new document
               </p>
               <p className="text-xs md:text-sm text-gray-500 mt-1">
                 <span className="hidden sm:inline">
