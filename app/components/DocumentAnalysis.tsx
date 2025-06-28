@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   DocumentAnalysisResult,
   ExtractedText,
@@ -28,7 +28,7 @@ export default function DocumentAnalysis({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Convert extracted text to fields format
-  const extractFields = () => {
+  const extractFields = useCallback(() => {
     return (
       result?.extractedTexts.map((text, index) => ({
         id: `field_${index}`, // Add unique ID
@@ -40,7 +40,7 @@ export default function DocumentAnalysis({
         originalText: text, // Keep reference to original extracted text
       })) || []
     );
-  };
+  }, [result]);
 
   // Scroll to field when scrollToField prop changes
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function DocumentAnalysis({
         }
       }
     }
-  }, [scrollToField, result]);
+  }, [scrollToField, result, extractFields]);
 
   if (configurationMissing) {
     return (
