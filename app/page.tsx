@@ -164,15 +164,6 @@ export default function Home() {
         }`}
       >
         <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm md:text-base font-medium text-gray-900">
-              All files
-            </h2>
-            <span className="text-xs text-gray-500">
-              {uploadedFiles.length}
-            </span>
-          </div>
-
           <FileUpload
             onFileSelect={handleFileSelect}
             isAnalyzing={isAnalyzing}
@@ -181,7 +172,7 @@ export default function Home() {
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4">
           <div className="relative">
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400"
@@ -252,7 +243,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Center - PDF Viewer */}
+      {/* Center: PDF Viewer */}
       <div
         className={`flex-1 flex flex-col ${
           mobileActiveTab !== "viewer" ? "hidden md:flex" : ""
@@ -307,7 +298,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Right Sidebar - Document Analysis */}
+      {/* Right Sidebar: Document Analysis Results */}
       <div
         className={`w-full md:w-80 bg-white border-l border-gray-200 ${
           mobileActiveTab !== "analysis" ? "hidden md:block" : ""
