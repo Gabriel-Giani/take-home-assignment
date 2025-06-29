@@ -67,10 +67,10 @@ export default function Home() {
     setHighlightedField(null); // Clear any highlighted field
     setScrollToField(null); // Clear any scroll target
 
-    // Auto-switch to viewer tab on mobile when file is selected
+    // Auto switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
 
-    // Auto-analyze the document
+    // Auto analyze the document
     if (azureConfig.endpoint && azureConfig.apiKey) {
       analyzeDocument(file);
     }
@@ -88,7 +88,7 @@ export default function Home() {
     setHighlightedField(null); // Clear any highlighted field
     setScrollToField(null); // Clear any scroll target
 
-    // Auto-switch to viewer tab on mobile when file is selected
+    // Auto switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
 
     if (azureConfig.endpoint && azureConfig.apiKey) {
@@ -103,14 +103,14 @@ export default function Home() {
       originalField: field,
     });
 
-    // Auto-switch to viewer tab on mobile when field is clicked
+    // Auto switch to viewer tab on mobile when field is clicked
     setMobileActiveTab("viewer");
   };
 
   const handleBoundingBoxClick = (field: ExtractedText) => {
     setScrollToField(field);
 
-    // Auto-switch to analysis tab on mobile when bounding box is clicked
+    // Auto switch to analysis tab on mobile when bounding box is clicked
     setMobileActiveTab("analysis");
 
     // Clear the scroll target after a delay to avoid continuous scrolling
@@ -157,7 +157,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Left Sidebar - File List */}
+      {/* Left Sidebar: File List */}
       <div
         className={`w-full md:w-80 bg-white border-r border-gray-200 flex flex-col ${
           mobileActiveTab !== "files" ? "hidden md:flex" : ""
@@ -190,7 +190,7 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search documents..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
             />
           </div>
         </div>
