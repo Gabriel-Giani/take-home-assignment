@@ -14,7 +14,6 @@ export interface PdfViewerProps {
    * Absolute or relative URL to the PDF document.
    */
   src: string;
-  debugMode?: boolean;
   /**
    * Highlighted bounding box to show when a field is clicked
    */
@@ -37,7 +36,6 @@ export interface PdfViewerProps {
  */
 export default function PdfViewer({
   src,
-  debugMode = false,
   highlightedField,
   onBoundingBoxClick,
 }: PdfViewerProps) {
@@ -467,24 +465,16 @@ export default function PdfViewer({
           >
             <div
               ref={viewerContainerRef}
-              className={`pdf-container relative ${
-                debugMode ? "debug-mode" : ""
-              }`}
+              className="pdf-container relative"
               style={{
                 height: "calc(100vh - 200px)",
                 maxHeight: "800px",
-                border: debugMode ? "2px solid #ef4444" : "1px solid #ddd",
+                border: "1px solid #ddd",
                 borderRadius: "8px",
                 overflow: "hidden",
-                backgroundColor: debugMode ? "#fef2f2" : "white",
+                backgroundColor: "white",
               }}
             >
-              {debugMode && (
-                <div className="absolute top-2 right-2 z-10 bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
-                  DEBUG MODE
-                </div>
-              )}
-
               <Viewer
                 fileUrl={src}
                 plugins={[pageNavigationPluginInstance, zoomPluginInstance]}
