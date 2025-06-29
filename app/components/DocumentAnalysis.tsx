@@ -376,9 +376,8 @@ export default function DocumentAnalysis({
                   </div>
                   <div className="text-xs text-gray-500 group-hover:text-gray-600">
                     📄 Page {field.page} • Coordinates: (
-                    {Math.round(field.originalText.boundingBox.xMin)},{" "}
-                    {Math.round(field.originalText.boundingBox.yMin)}) • Click
-                    to view
+                    {field.originalText.boundingBox.xMin.toFixed(1)},{" "}
+                    {field.originalText.boundingBox.yMin.toFixed(1)})
                   </div>
                 </div>
               ))}
