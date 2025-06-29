@@ -20,6 +20,7 @@ export default function Home() {
   const [uploadedFiles, setUploadedFiles] = useState<
     Array<{ file: File; name: string; size: string }>
   >([]);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [mobileActiveTab, setMobileActiveTab] = useState<
     "files" | "viewer" | "analysis"
   >("files");
@@ -119,6 +120,11 @@ export default function Home() {
 
   const configurationMissing = !azureConfig.endpoint || !azureConfig.apiKey;
 
+  // Filter files based on search query
+  const filteredFiles = uploadedFiles.filter((file) =>
+    file.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="h-screen flex flex-col md:flex-row bg-gray-50">
       {/* Mobile Navigation */}
@@ -190,6 +196,8 @@ export default function Home() {
             <input
               type="text"
               placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
             />
           </div>
@@ -201,9 +209,13 @@ export default function Home() {
             <div className="p-4 text-center text-gray-500 text-sm">
               No documents uploaded yet
             </div>
+          ) : filteredFiles.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 text-sm">
+              No documents found matching &quot;{searchQuery}&quot;
+            </div>
           ) : (
             <div className="space-y-1 p-2">
-              {uploadedFiles.map((uploadedFile, index) => (
+              {filteredFiles.map((uploadedFile, index) => (
                 <div
                   key={index}
                   onClick={() => handleFileFromList(uploadedFile)}
