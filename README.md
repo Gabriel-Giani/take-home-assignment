@@ -67,48 +67,6 @@ The application uses Azure Document Intelligence's `prebuilt-read` model which i
 - High accuracy OCR
 - Bounding box detection
 
-## File Structure
-
-```
-app/
-├── components/
-│   ├── PdfViewer.tsx          # PDF display component
-│   └── ExtractedTextViewer.tsx # Results display component
-├── hooks/
-│   └── useDocumentIntelligence.ts # React hook for Azure integration
-├── services/
-│   └── documentIntelligence.ts    # Azure Document Intelligence service
-└── page.tsx                       # Main application page
-```
-
-## Key Components
-
-### DocumentIntelligenceService
-
-Handles communication with Azure Document Intelligence API:
-
-- Analyze documents from file buffers
-- Analyze documents from URLs
-- Extract text with precise coordinates
-
-### useDocumentIntelligence Hook
-
-React hook that provides:
-
-- Document analysis functions
-- Loading states
-- Error handling
-- Result management
-
-### ExtractedTextViewer
-
-Displays analysis results with:
-
-- Grouped text by pages
-- Bounding box coordinates
-- Confidence score indicators
-- Color-coded confidence levels
-
 ## Environment Variables
 
 | Variable                                           | Description                                   |
