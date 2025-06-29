@@ -85,13 +85,13 @@ export default function Home() {
     setSelectedFile(uploadedFile.file);
     const url = URL.createObjectURL(uploadedFile.file);
     setPdfUrl(url);
-    clearResult();
     setHighlightedField(null); // Clear any highlighted field
     setScrollToField(null); // Clear any scroll target
 
     // Auto switch to viewer tab on mobile when file is selected
     setMobileActiveTab("viewer");
 
+    // analyzeDocument will check for cached results internally
     if (azureConfig.endpoint && azureConfig.apiKey) {
       analyzeDocument(uploadedFile.file);
     }
