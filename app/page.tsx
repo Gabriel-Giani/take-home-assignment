@@ -249,19 +249,6 @@ export default function Home() {
           mobileActiveTab !== "viewer" ? "hidden md:flex" : ""
         }`}
       >
-        {/* PDF Viewer Header */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <span className="text-xs sm:text-sm font-medium text-gray-900">
-                {highlightedField
-                  ? `Highlighting field on Page ${highlightedField.page}`
-                  : `Page 1 - ${result?.extractedTexts.length || 0} fields`}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* PDF Viewer Content */}
         <div className="flex-1 bg-gray-100">
           {selectedFile ? (
